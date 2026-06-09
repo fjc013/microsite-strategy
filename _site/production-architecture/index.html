@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Architecture</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #111; }
+        blockquote {
+            border-left: 4px solid #ccc;
+            margin: 20px 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all code blocks marked as mermaid
+            const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
+
+            mermaidBlocks.forEach(block => {
+                // Create a new div with the class 'mermaid'
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = block.textContent;
+
+                // Replace the entire <pre> block with this new div
+                block.parentElement.replaceWith(div);
+            });
+
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose'
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Production Architecture: Enterprise Microsite Platform</h1>
+<h2>Executive Summary</h2>
+<p>This document outlines the architectural transition from local development to a production-ready, enterprise-grade hosting platform. The objective is to provide a scalable, secure, and cost-effective environment capable of hosting hundreds of independent microsites while adhering to the strict regulatory requirements of a financial institution.</p>
+<h3>The Core Philosophy</h3>
+<p>To maintain the tenets of <strong>painless, secure, and cost-effective</strong>, we decouple the content delivery layer from the rigid, RAM-shared VPC workload pattern. By leveraging a serverless &quot;Edge-First&quot; architecture, we remove the overhead of managing virtual networks for simple static content while maintaining rigorous identity-based access control.</p>
+<h3>High-Level Architecture</h3>
+<p>The solution utilizes a &quot;Hub-and-Spoke&quot; identity model where <strong>Amazon Cognito</strong> acts as the central authentication orchestrator, bridging the gap between internal corporate identity and external client identity.</p>
+<pre><code class="language-mermaid">graph TD
+    UserEx[External User] --&gt; CF[Amazon CloudFront]
+    UserInt[Internal User] --&gt; CF
+    CF --&gt; AuthEdge{Lambda@Edge / CloudFront Function}
+    AuthEdge -- No Token --&gt; Cog[Amazon Cognito]
+    Cog -- SAML --&gt; F5[F5 APM / Active Directory]
+    Cog -- OIDC --&gt; Ping[PingOne]
+    AuthEdge -- Valid Token --&gt; S3[Amazon S3 Private Bucket]
+    S3 --&gt; CF
+    CF --&gt; UserEx
+    CF --&gt; UserInt
+</code></pre>
+<h3>Key Design Decisions</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Feature</th>
+<th style="text-align:left">Decision</th>
+<th style="text-align:left">Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Hosting</strong></td>
+<td style="text-align:left">S3 + CloudFront (OAC)</td>
+<td style="text-align:left">Maximum cost-efficiency and zero-maintenance serverless footprint.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Auth Hub</strong></td>
+<td style="text-align:left">Amazon Cognito</td>
+<td style="text-align:left">Provides a unified interface for multiple IdPs (F5, PingOne) without custom auth code.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Network</strong></td>
+<td style="text-align:left">Edge-Based Access</td>
+<td style="text-align:left">Bypasses VPC complexity; internal traffic flows naturally via Direct Connect/TGW to the public AWS edge.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Security</strong></td>
+<td style="text-align:left">Identity-Gated Content</td>
+<td style="text-align:left">Prevents &quot;link sharing&quot; by requiring a valid session token for every request.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3>Navigation</h3>
+<ul>
+<li><a href="/auth-strategy/">Authentication Strategy</a></li>
+<li><a href="/deployment-model/">Services and Deployment</a></li>
+<li><a href="/iam-policy/">IAM and Policy Considerations</a></li>
+<li><a href="/observability/">Observability Strategy</a></li>
+</ul>
+
+    </div>
+</body>
+</html>

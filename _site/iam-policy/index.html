@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM and Policy Considerations</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #111; }
+        blockquote {
+            border-left: 4px solid #ccc;
+            margin: 20px 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all code blocks marked as mermaid
+            const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
+
+            mermaidBlocks.forEach(block => {
+                // Create a new div with the class 'mermaid'
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = block.textContent;
+
+                // Replace the entire <pre> block with this new div
+                block.parentElement.replaceWith(div);
+            });
+
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose'
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>IAM and Policy Considerations</h1>
+<p>As a financial institution, the principle of <strong>Least Privilege</strong> is non-negotiable. The architecture implements several layers of policy enforcement.</p>
+<h2>1. S3 Bucket Policy (Origin Security)</h2>
+<p>The S3 buckets are completely private. We use <strong>Origin Access Control (OAC)</strong> to ensure that only the specific CloudFront distribution can read the objects.</p>
+<p><strong>Example Policy Logic:</strong></p>
+<ul>
+<li><code>Allow</code> $\rightarrow$ <code>s3:GetObject</code></li>
+<li><code>Condition</code> $\rightarrow$ <code>StringEquals</code> $\rightarrow$ <code>AWS:SourceArn</code> $\rightarrow$ <code>arn:aws:cloudfront::ACCOUNT:distribution/DIST_ID</code></li>
+</ul>
+<h2>2. CI/CD IAM Role</h2>
+<p>The GitHub Action does not use long-term credentials. Instead, it uses <strong>OIDC (OpenID Connect)</strong> to assume a short-lived IAM role in AWS.</p>
+<p><strong>Permissions granted to the Deployment Role:</strong></p>
+<ul>
+<li><code>s3:PutObject</code> (To upload the built site)</li>
+<li><code>s3:ListBucket</code> (To sync files)</li>
+<li><code>cloudfront:CreateInvalidation</code> (To clear the cache)</li>
+</ul>
+<h2>3. Cognito Identity Policies</h2>
+<p>Cognito provides fine-grained control over who can access which site.</p>
+<ul>
+<li><strong>User Pool Groups:</strong> We define groups (e.g., <code>Internal-Employees</code>, <code>External-Clients</code>).</li>
+<li><strong>Attribute-Based Access Control (ABAC):</strong> The Lambda@Edge guard checks the user's identity claims in the JWT. If a user lacks the required <code>group</code> attribute for a specific microsite, access is denied with a <code>403 Forbidden</code>.</li>
+</ul>
+<h2>4. Organization-Level Guardrails</h2>
+<p>To ensure compliance across the account:</p>
+<ul>
+<li><strong>Service Control Policies (SCPs):</strong> Prevent the accidental creation of public S3 buckets across the entire organization.</li>
+<li><strong>Encryption:</strong> All S3 buckets are encrypted at rest using AWS KMS (Customer Managed Keys) to meet financial data protection standards.</li>
+</ul>
+
+    </div>
+</body>
+</html>

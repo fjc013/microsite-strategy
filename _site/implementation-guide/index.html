@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementation Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #111; }
+        blockquote {
+            border-left: 4px solid #ccc;
+            margin: 20px 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all code blocks marked as mermaid
+            const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
+
+            mermaidBlocks.forEach(block => {
+                // Create a new div with the class 'mermaid'
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = block.textContent;
+
+                // Replace the entire <pre> block with this new div
+                block.parentElement.replaceWith(div);
+            });
+
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose'
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Implementation Guide: Building a Local Microsite with Eleventy</h1>
+<p>This guide documents the step-by-step process of creating a professional, serverless-ready microsite to share AI-generated content.</p>
+<h2>1. Conceptual Approach</h2>
+<p>The goal was to transform AI-generated Markdown content into a format that is easy for humans to consume without requiring them to understand Markdown syntax.</p>
+<p><strong>The Pipeline:</strong>
+<code>AI Content (Markdown)</code> $\rightarrow$ <code>Static Site Generator (Eleventy)</code> $\rightarrow$ <code>Formatted Webpage (HTML/CSS)</code></p>
+<h2>2. Local Environment Setup</h2>
+<p>The site is built using <strong>Node.js</strong> and <strong>npm</strong>.</p>
+<h3>Dependencies</h3>
+<ul>
+<li><strong>Eleventy (11ty):</strong> A lightweight Static Site Generator (SSG) that transforms Markdown into HTML.</li>
+<li><strong>Nunjucks:</strong> The templating engine used for the site layout.</li>
+</ul>
+<h3>Initial Installation</h3>
+<pre><code class="language-bash">npm init -y
+npm install @11ty/eleventy --save-dev
+</code></pre>
+<h2>3. Project Architecture</h2>
+<p>A clean separation between source files and the generated site was established:</p>
+<ul>
+<li><code>/src</code>: Contains all source content and templates.</li>
+<li><code>/_site</code>: The output folder where the final HTML is generated.</li>
+<li><code>src/_includes/layout.njk</code>: The master template that defines the visual look (CSS and HTML structure).</li>
+</ul>
+<h2>4. Content Implementation</h2>
+<p>The source content was placed in <code>src/index.md</code>. To connect the content to the visual design, <strong>Frontmatter</strong> was added to the top of the Markdown file:</p>
+<pre><code class="language-markdown">---
+layout: layout.njk
+title: Microsites Strategy
+---
+</code></pre>
+<h2>5. Key Technical Fixes &amp; Optimizations</h2>
+<h3>The &quot;Escaped HTML&quot; Issue</h3>
+<p>Initially, the site rendered HTML tags as literal text (e.g., <code>&lt;h1&gt;</code> was visible on the page). This happened because the template engine was escaping the content for security.</p>
+<ul>
+<li><strong>Solution:</strong> Added the <code>| safe</code> filter to the content variable in <code>layout.njk</code>.</li>
+<li><strong>Change:</strong> <code>{{ content }}</code> -&gt; <code>{{ content | safe }}</code></li>
+</ul>
+<h3>Visual Refinements</h3>
+<p>AI models often use LaTeX for arrows (<code>$\rightarrow$</code>), which don't render in standard HTML.</p>
+<ul>
+<li><strong>Solution:</strong> Replaced all LaTeX arrow notation with the standard <code>-&gt;</code> for better readability and &quot;flow&quot; in a technical context.</li>
+</ul>
+<h2>6. Running the Site</h2>
+<p>Two primary scripts were added to <code>package.json</code> for ease of use:</p>
+<ul>
+<li><code>npm start</code>: Launches a local development server with live-reload.</li>
+<li><code>npm run build</code>: Generates the final static files in the <code>_site</code> directory.</li>
+</ul>
+<h2>7. Future Roadmap (Production)</h2>
+<p>The current local setup is designed to be mirrored exactly in an AWS serverless environment:</p>
+<ul>
+<li><strong>Storage:</strong> AWS S3</li>
+<li><strong>Distribution:</strong> AWS CloudFront (CDN)</li>
+<li><strong>Automation:</strong> GitHub Actions for CI/CD</li>
+</ul>
+
+    </div>
+</body>
+</html>

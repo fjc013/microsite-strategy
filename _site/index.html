@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsites Strategy</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #111; }
+        blockquote {
+            border-left: 4px solid #ccc;
+            margin: 20px 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all code blocks marked as mermaid
+            const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
+
+            mermaidBlocks.forEach(block => {
+                // Create a new div with the class 'mermaid'
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = block.textContent;
+
+                // Replace the entire <pre> block with this new div
+                block.parentElement.replaceWith(div);
+            });
+
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose'
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Microsites Strategy</h1>
+<p><a href="/implementation-guide/">View Implementation Guide</a> | <a href="/production-architecture/">View Production Architecture</a></p>
+<h2>User Request</h2>
+<blockquote>
+<p>Teach me about microsites.</p>
+<ul>
+<li>I have basically zero background on this topic</li>
+<li>My goal is to determine if microsites are a valid platform to serve and share content created with Claude Code or other Agentic assistants</li>
+<li>For the audience I need to connect with, Markdown is difficult to consume</li>
+<li>My deployment goals are local for development, and AWS for production
+<ul>
+<li>The AWS environment should be painless to maintain, secure, and cost effective. Serverless or service-oriented would be preferred</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<h2>Response</h2>
+<p>Since you have zero background in this topic, let's start with the concept and move toward the technical implementation for your specific goals.</p>
+<h3>What is a Microsite?</h3>
+<p>A <strong>microsite</strong> is a small, standalone website (typically 1–5 pages) designed for a single, specific purpose. Unlike a main corporate website, which tries to be everything to everyone, a microsite focuses on one a specific topic, product launch, or campaign.</p>
+<p><strong>Why they are useful for your goal:</strong>
+AI assistants generate a lot of &quot;atomic&quot; content—single-topic guides, specific tool tutorials, or focused analysis. Creating a full-scale website for every AI-generated piece of content is overkill. A microsite provides a dedicated &quot;home&quot; for a specific AI-generated output without the complexity of a large site architecture.</p>
+<hr>
+<h3>Addressing the &quot;Markdown Problem&quot;</h3>
+<p>You mentioned your audience finds Markdown difficult to consume. This is a common friction point: <strong>AI likes to write in Markdown, but humans like to read formatted HTML.</strong></p>
+<p>The solution is a <strong>Static Site Generator (SSG)</strong>.
+An SSG acts as a translator:</p>
+<ol>
+<li><strong>Input:</strong> You feed it the Markdown files created by Claude Code.</li>
+<li><strong>Process:</strong> It applies a visual template (CSS/HTML) to that text.</li>
+<li><strong>Output:</strong> It generates a set of standard web pages (HTML) that look like a professional website to the end-user.</li>
+</ol>
+<p>This allows you to keep your source files in a format Claude Code understands perfectly, while your audience sees a polished, accessible webpage.</p>
+<hr>
+<h3>Is this a valid platform for AI content?</h3>
+<p><strong>Yes, absolutely.</strong> In fact, it is one of the most efficient ways to share agentic output.</p>
+<ul>
+<li><strong>Speed of Iteration:</strong> Claude Code can write a new page in seconds; an SSG can &quot;build&quot; that page into a site instantly.</li>
+<li><strong>Version Control:</strong> Since the source is just text (Markdown), you can use Git to track exactly how the AI improved the content over time.</li>
+<li><strong>Portability:</strong> Because the output is &quot;static&quot; (just HTML/CSS), the site can be hosted anywhere for almost zero cost.</li>
+</ul>
+<hr>
+<h3>Recommended Technical Architecture (AWS Serverless)</h3>
+<p>To meet your goals of being <strong>painless, secure, and cost-effective</strong>, I recommend a &quot;Static Web Hosting&quot; stack. This is the gold standard for serverless content delivery.</p>
+<h4>1. Local Development</h4>
+<ul>
+<li><strong>Tool:</strong> Use a lightweight SSG like <strong>Eleventy (11ty)</strong> or <strong>Hugo</strong>.</li>
+<li><strong>Workflow:</strong> Claude Code writes <code>.md</code> files -&gt; You run a local build command -&gt; You view the result in your browser at <code>localhost:8080</code>.</li>
+</ul>
+<h4>2. Production Deployment (AWS)</h4>
+<p>Instead of renting a server (which is expensive and requires maintenance), use these three services:</p>
+<ul>
+<li><strong>AWS S3 (Simple Storage Service):</strong> Your site is essentially a folder of files. S3 can &quot;host&quot; these files as a website. It costs pennies per month.</li>
+<li><strong>AWS CloudFront (CDN):</strong> This sits in front of S3. It provides:
+<ul>
+<li><strong>Security:</strong> It handles HTTPS (SSL) so your site is secure.</li>
+<li><strong>Performance:</strong> It caches your site globally so it loads instantly for users.</li>
+<li><strong>Cost:</strong> Extremely cheap for low-to-medium traffic.</li>
+</ul>
+</li>
+<li><strong>GitHub Actions (CI/CD):</strong> This is the &quot;glue.&quot; When you push the AI-generated content to GitHub, this automation automatically builds the site and uploads it to S3. You never have to manually &quot;upload&quot; files.</li>
+</ul>
+<h3>Summary for your Strategy</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Goal</th>
+<th style="text-align:left">Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Consumption</strong></td>
+<td style="text-align:left"><strong>Markdown -&gt; SSG -&gt; HTML</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Content Source</strong></td>
+<td style="text-align:left"><strong>Claude Code / Agentic Assistants</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>AWS Infrastructure</strong></td>
+<td style="text-align:left"><strong>S3 -&gt; CloudFront (Serverless)</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Maintenance</strong></td>
+<td style="text-align:left"><strong>Automated via GitHub Actions (Zero-Ops)</strong></td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+</body>
+</html>

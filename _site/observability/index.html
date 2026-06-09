@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observability Strategy</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #111; }
+        blockquote {
+            border-left: 4px solid #ccc;
+            margin: 20px 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all code blocks marked as mermaid
+            const mermaidBlocks = document.querySelectorAll('pre code.language-mermaid');
+
+            mermaidBlocks.forEach(block => {
+                // Create a new div with the class 'mermaid'
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = block.textContent;
+
+                // Replace the entire <pre> block with this new div
+                block.parentElement.replaceWith(div);
+            });
+
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                securityLevel: 'loose'
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Observability Strategy</h1>
+<p>Maintaining a &quot;painless&quot; operation requires proactive monitoring. Because the stack is serverless, we rely on integrated AWS logs rather than agent-based monitoring.</p>
+<h2>1. Traffic and Performance Monitoring</h2>
+<p><strong>Amazon CloudFront</strong> provides the primary lens into user experience:</p>
+<ul>
+<li><strong>Standard Metrics:</strong> Monitor 4xx and 5xx error rates to detect broken links or deployment failures.</li>
+<li><strong>Real-time Logs:</strong> CloudFront access logs are delivered to an S3 bucket for deep analysis of traffic patterns and origin latency.</li>
+</ul>
+<h2>2. Security and Audit Trails</h2>
+<p>Given the regulated nature of the business, auditing <em>who</em> accessed <em>what</em> is critical.</p>
+<ul>
+<li><strong>AWS CloudTrail:</strong> Logs every API call made to S3 and Cognito. This provides a definitive audit trail of when content was updated and who modified the infrastructure.</li>
+<li><strong>Cognito User Logs:</strong> Tracks authentication attempts, password resets, and federation events from F5/PingOne.</li>
+</ul>
+<h2>3. Deployment Health</h2>
+<p>We integrate observability into the CI/CD pipeline:</p>
+<ul>
+<li><strong>GitHub Actions Logs:</strong> Track build success/failure and S3 sync durations.</li>
+<li><strong>CloudWatch Alarms:</strong> Set up alerts for spikes in 403 (Forbidden) errors, which may indicate an issue with the Cognito authentication guard or expired certificates.</li>
+</ul>
+<h2>4. Observability Stack Summary</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Metric</th>
+<th style="text-align:left">Tool</th>
+<th style="text-align:left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Request Volume</strong></td>
+<td style="text-align:left">CloudFront Metrics</td>
+<td style="text-align:left">Capacity planning and usage trends</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Auth Failures</strong></td>
+<td style="text-align:left">Cognito Logs</td>
+<td style="text-align:left">Troubleshooting SSO/SAML issues</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Data Integrity</strong></td>
+<td style="text-align:left">S3 Versioning</td>
+<td style="text-align:left">Recovering from accidental deletions</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Compliance</strong></td>
+<td style="text-align:left">AWS CloudTrail</td>
+<td style="text-align:left">Regulatory audit requirements</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+</body>
+</html>
